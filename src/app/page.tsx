@@ -1,101 +1,198 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect, use } from "react";
+import Header from "./components/Header";
+import Loading from "./components/LoadingScreen";
+import { getWeatherByCity, getForecastByLatitude, getWeatherByLatitude, getForecastByCity } from "./api/OpenWeatherMap";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+  const [cityName, setCityName] = useState('');
+  const [weather, setWeather] = useState([]);
+  const [countryFlag, setCountryFlag] = useState('');
+  const [weatherIcon, setWeatherIcon] = useState('');
+  const [temperature, setTemperature] = useState(0);
+  const [wind, setWind] = useState(0);
+  const [humidity, setHumidity] = useState(0);
+  const [time, setTime] = useState('');
+  const [forecast, setForecast] = useState([]);
+  const [city, setCity] = useState('');
+  const [isLoading , setIsLoading] = useState(true);
+  const [accessLocation, setAccessLocation] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  interface WeatherData {
+    name: string;
+    weather: any;
+    sys: { country: string };
+    main: { temp: number, humidity: number };
+    wind: { speed: number };
+    dt: number;
+    timezone: number;
+  };
+
+  interface ForecastData {
+    list: any;
+  }
+
+
+  //Pega a localização do usuário para mostrar o clima da cidade
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      setAccessLocation(true);
+      setLatitude(position.coords.latitude);
+      setLongitude(position.coords.longitude);
+    } , (error) => {
+      setIsLoading(false);
+      setAccessLocation(false);
+      console.log(error);
+      alert("Erro ao acessar localização")
+    }
+    );
+  }, []);
+
+  //Pega o clima atual da cidade do usuário utilizando a latitude e a longitude
+  useEffect(() => {
+      setIsLoading(true);
+    if(latitude !== 0 && longitude !== 0) {
+      getWeatherByLatitude(latitude, longitude).then((response: WeatherData) => {
+        if(response.weather === undefined) {
+          alert('Cidade não encontrada');
+          return;
+        }
+        setCityName(response.name);
+        setWeather(response.weather);
+        setWeatherIcon(response.weather[0].icon);
+        setCountryFlag(response.sys.country);
+        setTemperature(response.main.temp);
+        setWind(response.wind.speed);
+        setHumidity(response.main.humidity);
+        setIsLoading(false);
+      });
+    }
+  }
+  , [latitude, longitude]);
+
+  //Pega a previsão do tempo da cidade do usuário utilizando a latitude e a longitude
+  useEffect(() => {
+    if(latitude !== 0 && longitude !== 0) {
+      getForecastByLatitude(latitude, longitude).then((response: ForecastData) => {
+        if(response.list === undefined) {
+          return;
+        }
+        setForecast(response.list);
+      });
+    }
+  }
+  , [latitude, longitude]);
+
+  //Pega o clima e a previsão da cidade pesquisada pelo usuário utilizando o nome da cidade na pesquisa
+  function searchCity(){
+    setIsLoading(true);
+    getWeatherByCity(city).then((response: WeatherData) => {
+      if(response.weather === undefined) {
+        alert('Cidade não encontrada');
+        setIsLoading(false);
+        return;
+      }
+      setCity('');
+      setCityName(response.name);
+      setWeather(response.weather);
+      setWeatherIcon(response.weather[0].icon);
+      setCountryFlag(response.sys.country);
+      setTemperature(response.main.temp);
+      setWind(response.wind.speed);
+      setHumidity(response.main.humidity);
+      setTime(new Date((response.dt + response.timezone) * 1000).toLocaleTimeString());
+      setIsLoading(false);
+    });
+    getForecastByCity(city).then((response: ForecastData) => {
+      if(response.list === undefined) {
+        return;
+      }
+      setForecast(response.list);
+    });
+  }
+
+  //Se o usuário não permitir o acesso à localização, mostra uma mensagem pedindo para permitir o acesso
+  if(!accessLocation) {
+    return (
+      <div className="flex flex-col h-full">
+        <Header setCity={setCity} city={city} searchCity={searchCity}/>
+        <div className="flex items-center flex-grow">
+          <h1 className="mx-auto text-3xl text-center font-bold mt-12 p-12">Por favor, permita o acesso à sua localização para visualizar o clima da sua cidade ou pesquise uma cidade acima</h1>  
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  //Mostra a tela de carregamento enquanto os dados estão sendo carregados
+  if(isLoading) {
+    return (
+      <div className="flex-col">
+        <Header setCity={setCity} city={city} searchCity={searchCity}/>
+        <Loading/>
+      </div>
+    );
+  }
+
+
+  return (
+    <div className="flex-col ">
+      {weather.length > 0 ?
+      <div>
+          {weather.map((w: { main: string }) => (
+            w.main === 'Rain' ? <video src="rain.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/> 
+            : w.main === 'Clear' ? <video src="clear.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/>
+            : w.main === 'Clouds' ? <video src="clouds.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/>
+            : w.main === 'Snow' ? <video src="snow.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/>
+            : w.main === 'Drizzle' ? <video src="rain.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/>
+            : w.main === 'Thunderstorm' ? <video src="thunderstorm.mp4" autoPlay loop muted className="object-cover w-full h-full fixed z-[-1] opacity-60"/>
+            : null
+          ))}
+      </div>
+      : null}
+      <Header setCity={setCity} city={city} searchCity={searchCity}/>
+      {weather.length > 0 ? 
+        <div className="flex flex-wrap">
+          <div className="mx-auto flex  gap-4">
+            <img src={`https://flagsapi.com/${countryFlag}/flat/64.png`}/>
+            <h1 className="font-bold text-3xl my-auto">{cityName}</h1>
+          </div>
+
+          <div className="mt-12 basis-[100%]">
+            <h1 className="font-bold text-4xl text-center">Clima Agora</h1>
+            <img className="mx-auto h-36" src={`https://openweathermap.org/img/wn/${weatherIcon}.png`}/>
+            <h1 className="font-bold text-3xl text-center">{temperature.toFixed(0)}°C</h1>
+            <h1 className="text-2xl text-center mt-2">{time}</h1>
+            {weather.map((w: { description: string }) => (
+              <h1 key={w.description} className="font-bold text-3xl text-center capitalize mt-2">{w.description}</h1>
+            ))}
+            <div className="flex justify-center mt-4 gap-8">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className=""><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
+                <h1 className="text-2xl text-center">{wind.toFixed(0)} km/h</h1>
+              </div>
+             <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className=""><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                <h1 className="text-2xl text-center">{humidity}%</h1>
+             </div>
+            </div>
+          </div>
+        </div>
+      : null }
+      <h1 className="mt-16 font-bold text-4xl text-center">Previsão</h1>
+      <div className="flex flex-wrap justify-center items-center mb-24">
+        {forecast.length > 0 ?
+          forecast.slice(0,10).map((f: { dt_txt: string, main: { temp: number }, weather: { description: string, icon: string }[] }) => (
+            <div key={f.dt_txt} className="mt-8 ml-12">
+              <img className="mx-auto h-36" src={`https://openweathermap.org/img/wn/${f.weather[0].icon}.png`}/>
+              <h1 className="font-bold text-3xl text-center">{f.main.temp.toFixed(0)}°C</h1>
+              <h1 className="font-bold text-3xl text-center capitalize mt-2">{f.weather[0].description}</h1>
+              <h1 className="text-2xl text-center mt-2">{f.dt_txt.split(' ')[1].slice(0,5)}</h1>
+            </div>
+          ))
+        : null}
+      </div>
     </div>
   );
 }
