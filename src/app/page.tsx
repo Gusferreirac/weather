@@ -160,35 +160,35 @@ export default function Home() {
           </div>
 
           <div className="mt-12 basis-[100%]">
-            <h1 className="font-bold text-4xl text-center">Clima Agora</h1>
-            <img className="mx-auto h-36" src={`https://openweathermap.org/img/wn/${weatherIcon}.png`}/>
-            <h1 className="font-bold text-3xl text-center">{temperature.toFixed(0)}°C</h1>
+            <h1 className="font-bold 2xl:text-4xl lg:text-3xl md:text-2xl text-center">Clima Agora</h1>
+            <img className="mx-auto 2xl:h-36 lg:h-32 md:h-24" src={`https://openweathermap.org/img/wn/${weatherIcon}.png`}/>
+            <h1 className="font-bold 2xl:text-3xl lg:text-2xl md:text-xl text-center">{temperature.toFixed(0)}°C</h1>
             <h1 className="text-2xl text-center mt-2">{time}</h1>
             {weather.map((w: { description: string }) => (
-              <h1 key={w.description} className="font-bold text-3xl text-center capitalize mt-2">{w.description}</h1>
+              <h1 key={w.description} className="font-bold 2xl:text-3xl lg:text-2xl md:text-xl text-center capitalize mt-2">{w.description}</h1>
             ))}
             <div className="flex justify-center mt-4 gap-8">
               <div className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className=""><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
-                <h1 className="text-2xl text-center">{wind.toFixed(0)} km/h</h1>
+                <h1 className="2xl:text-2xl lg:text-xl md:text-lg text-center">{wind.toFixed(0)} km/h</h1>
               </div>
              <div className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className=""><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
-                <h1 className="text-2xl text-center">{humidity}%</h1>
+                <h1 className="2xl:text-2xl lg:text-xl md:text-lg text-center">{humidity}%</h1>
              </div>
             </div>
           </div>
         </div>
       : null }
-      <h1 className="mt-16 font-bold text-4xl text-center">Previsão</h1>
-      <div className="flex flex-wrap justify-center items-center mb-24">
+      <h1 className="mt-16 font-bold 2xl:text-4xl lg:text-3xl md:text-2xl text-center">Previsão</h1>
+      <div className="flex flex-wrap justify-center items-center mb-24 p-8 2xl:gap-x-12 lg:gap-x-8 gap-x-4 gap-y-8 max-w-[80%] mx-auto">
         {forecast.length > 0 ?
           forecast.slice(0,10).map((f: { dt_txt: string, main: { temp: number }, weather: { description: string, icon: string }[] }) => (
-            <div key={f.dt_txt} className="mt-8 ml-12">
-              <img className="mx-auto h-36" src={`https://openweathermap.org/img/wn/${f.weather[0].icon}.png`}/>
-              <h1 className="font-bold text-3xl text-center">{f.main.temp.toFixed(0)}°C</h1>
-              <h1 className="font-bold text-3xl text-center capitalize mt-2">{f.weather[0].description}</h1>
-              <h1 className="text-2xl text-center mt-2">{f.dt_txt.split(' ')[1].slice(0,5)}</h1>
+            <div key={f.dt_txt} className="2xl:mt-8 lg:mt-2 flex-1 xl:flex-none self-stretch flex flex-col">
+              <img className="mx-auto 2xl:h-36 lg:h-32 md:h-24" src={`https://openweathermap.org/img/wn/${f.weather[0].icon}.png`}/>
+              <h1 className="font-bold 2xl:text-3xl lg:text-2xl md:text-xl text-center mx-auto">{f.main.temp.toFixed(0)}°C</h1>
+              <h1 className="font-bold 2xl:text-3xl lg:text-2xl md:text-xl text-center capitalize mt-2 mx-auto mb-2">{f.weather[0].description}</h1>
+              <h1 className="text-2xl text-center mt-auto mx-auto">{f.dt_txt.split(' ')[1].slice(0,5)}</h1>
             </div>
           ))
         : null}
