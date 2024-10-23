@@ -8,7 +8,11 @@ Dentre outros elementos visuais podemos destacar os icones de umidade e vento qu
 
 O sistema consiste em somente uma página que mostra as informções do clima na cidade do usuário (ou na cidade pesquisada), que no caso são, temperatura, umidade e velocidade do vento, além de mostrar a previsão do clima nas próximas 30 horas.
 
+O sistema também é responsivo, permitindo a visualização em telas de diversos tamanhos.
+
 ![Imagem do sistema](https://i.imgur.com/OLuQUPM.png)
+
+![Imagem do sistema em tela de celular](https://i.imgur.com/lKnQKbh.png)
 
 
 ## Como Rodar
